@@ -27,6 +27,8 @@ export interface Section {
   navbar_order: number;
   navbar_enabled: boolean;
   navbar_important: boolean;
+  title_color: string | null;
+  title_alignment: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -42,6 +44,8 @@ export interface ContentBlock {
   width: "full" | "half" | "third" | "quarter";
   alignment: "left" | "center" | "right";
   padding: string;
+  row_id: string | null;
+  columns: number;
   metadata: Record<string, unknown> | null;
   published: boolean;
   created_at: string;

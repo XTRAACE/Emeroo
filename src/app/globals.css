@@ -54,6 +54,13 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 body {
@@ -138,7 +145,7 @@ body {
 
   .phone-mockup {
     @apply relative mx-auto;
-    width: 280px;
+    width: min(280px, 70vw);
     background: #1c1917;
     border-radius: 36px;
     padding: 12px;

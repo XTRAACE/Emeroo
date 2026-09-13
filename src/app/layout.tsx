@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#dc2626",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,8 +28,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+      <head>
+        {/* Remove browser extension injected attributes before React hydration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+              function clean(){
+                var els=document.querySelectorAll('[bis_skin_checked]');
+                for(var i=0;i<els.length;i++) els[i].removeAttribute('bis_skin_checked');
+              }
+              if(document.readyState==='loading'){
+                document.addEventListener('DOMContentLoaded',clean);
+              }else{clean();}
+              new MutationObserver(clean).observe(document.body||document.documentElement,{attributes:true,attributeFilter:['bis_skin_checked'],subtree:true});
+            })();`,
+          }}
+        />
+      </head>
+      <body suppressHydrationWarning>
+        <div suppressHydrationWarning>
+          <ThemeProvider>{children}</ThemeProvider>
+        </div>
       </body>
     </html>
   );

@@ -204,6 +204,33 @@ export async function getContributors(): Promise<Contributor[]> {
   return (data as Contributor[]) || [];
 }
 
+// ---- Dynamic Sections with Blocks ----
+export async function getAllSectionsWithBlocks(): Promise<SectionWithBlocks[]> {
+  if (!isSupabaseConfigured) return [];
+  const { data: sections, error } = await getDb()
+    .from("sections")
+    .select("*")
+    .eq("published", true)
+    .order("display_order", { ascending: true });
+
+  if (error || !sections) return [];
+
+  const result: SectionWithBlocks[] = [];
+  for (const section of sections as Section[]) {
+    const { data: blocks } = await getDb()
+      .from("content_blocks")
+      .select("*")
+      .eq("section_id", section.id)
+      .eq("published", true)
+      .order("display_order", { ascending: true });
+    result.push({
+      ...section,
+      blocks: (blocks as ContentBlock[]) || [],
+    });
+  }
+  return result;
+}
+
 // ---- Footer Links ----
 export async function getFooterLinks(): Promise<FooterLink[]> {
   if (!isSupabaseConfigured) return [];

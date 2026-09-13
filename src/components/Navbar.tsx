@@ -2,9 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
+import { getSupabaseClient } from "@/lib/supabase/client";
 
 interface NavbarProps {
   items: { label: string; href: string }[];
+}
+
+interface NavbarSettings {
+  logo_text?: string;
+  logo_url?: string;
+  center_logo_url?: string;
+  show_center_logo?: boolean;
+  bg_color?: string;
+  text_color?: string;
+  accent_color?: string;
+  style?: string;
 }
 
 const defaultItems = [
@@ -18,6 +30,20 @@ const defaultItems = [
 ];
 
 export default function Navbar({ items }: NavbarProps) {
+  const [navSettings, setNavSettings] = useState<NavbarSettings>({});
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const sb = getSupabaseClient();
+        const { data } = await sb.from("site_settings").select("value").eq("id", "navbar").single();
+        if (data?.value) setNavSettings(data.value as NavbarSettings);
+      } catch (err) {
+        console.error("Failed to load navbar settings:", err);
+      }
+    };
+    loadSettings();
+  }, []);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -32,6 +58,7 @@ export default function Navbar({ items }: NavbarProps) {
 
   return (
     <nav
+      suppressHydrationWarning
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
           ? "shadow-md"
@@ -45,16 +72,20 @@ export default function Navbar({ items }: NavbarProps) {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <a href="#" className="flex items-center gap-2.5 group">
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold transition-transform group-hover:scale-105"
-              style={{ background: "var(--gradient-primary)" }}
-            >
-              E
-            </div>
-            <span className="text-lg font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
-              EMERO
+          {/* Logo - Left */}
+          <a href="#" className="flex items-center gap-2 sm:gap-2.5 group">
+            {navSettings.logo_url ? (
+              <img src={navSettings.logo_url} alt="Logo" className="h-9 w-auto transition-transform group-hover:scale-105" />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold transition-transform group-hover:scale-105"
+                style={{ background: "var(--gradient-primary)" }}
+              >
+                {(navSettings.logo_text || "E").charAt(0)}
+              </div>
+            )}
+            <span className="text-base sm:text-lg font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+              {navSettings.logo_text || "EMERO"}
             </span>
           </a>
 
@@ -114,8 +145,15 @@ export default function Navbar({ items }: NavbarProps) {
             </a>
           </div>
 
+          {/* Center Logo (when enabled) */}
+          {navSettings.show_center_logo && navSettings.center_logo_url && (
+            <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2">
+              <img src={navSettings.center_logo_url} alt="Center Logo" className="h-12 w-auto" />
+            </div>
+          )}
+
           {/* Mobile right side */}
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-1 sm:gap-2 md:hidden">
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg"
